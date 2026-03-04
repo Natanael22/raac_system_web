@@ -1,0 +1,167 @@
+PROMPT FRONTEND
+RaacSystem — Aplicação Web
+React 18 · TypeScript · TailwindCSS · shadcn/ui · React Query · Zustand
+1. Diagrama de Arquitetura Frontend
+O diagrama abaixo mostra o fluxo desde a navegação do usuário até as chamadas à API, passando pelas camadas de páginas, componentes, estado global e serviços.
+2. Stack e Configuração do Projeto
+Crie o projeto com Vite + React + TypeScript. Configure TailwindCSS, shadcn/ui e as dependências abaixo.
+2.1 Comando de criação
+npm create vite@latest raac_system_frontend -- --template react-ts
+cd raac_system_frontend
+npm install
+npx tailwindcss init -p
+npx shadcn-ui@latest init
+2.2 Dependências principais
+react-router-dom@6        # roteamento
+@tanstack/react-query@5   # cache e sync de dados do servidor
+zustand@4                 # estado global leve
+axios@1                   # cliente HTTP com interceptors
+react-hook-form@7         # formulários performáticos
+zod@3                     # validação de schema (integrar com RHF)
+@fullcalendar/react       # componente de agenda
+react-dropzone            # upload de arquivos drag-and-drop
+date-fns@3                # manipulação de datas
+recharts                  # gráficos do dashboard financeiro
+socket.io-client          # WebSocket para status de autorização
+@radix-ui/react-*         # primitivos acessíveis (via shadcn)
+2.3 Estrutura de pastas obrigatória
+src/
+├── app/
+│   ├── router.tsx         # definição de todas as rotas
+│   ├── providers.tsx      # QueryClient, AuthProvider, ThemeProvider
+│   └── main.tsx
+├── pages/                 # uma pasta por módulo
+│   ├── auth/              # Login, ForgotPassword, ResetPassword
+│   ├── dashboard/
+│   ├── patients/          # List, Detail, Form, MedicalRecord
+│   ├── doctors/
+│   ├── appointments/      # Calendar, Form, WaitingRoom
+│   ├── authorizations/    # Request, StatusTracker
+│   ├── billing/           # Guides, Batches, Reports
+│   └── settings/          # InsuranceConfigs, Users, Clinic
+├── components/
+│   ├── ui/                # shadcn components (não editar)
+│   └── shared/            # componentes customizados reutilizáveis
+├── hooks/                 # custom hooks por domínio
+├── services/              # funções de chamada à API por recurso
+├── store/                 # Zustand stores
+├── lib/                   # axios instance, queryClient, utils
+└── types/                 # TypeScript interfaces e types
+3. Especificação das Páginas
+Página
+Rota
+Funcionalidades obrigatórias
+Login
+/login
+Form email+senha, validação Zod, redirect por role, tratamento de 2FA
+Dashboard
+/dashboard
+Agenda do dia, fila de espera, alertas de autorização pendente, KPIs (consultas, faturamento, glosas)
+Pacientes — Lista
+/patients
+Tabela com busca em tempo real (nome/CPF/carteirinha), paginação, filtros, badge de carteirinha vencida
+Pacientes — Detalhe
+/patients/:id
+Tabs: Dados | Convênios | Prontuário | Agendamentos | Documentos
+Prontuário
+/patients/:id/records
+Timeline de atendimentos, visualizador de arquivos, impressão PDF
+Novo Prontuário
+/records/new
+Campos SOAP, autocomplete CID-10, upload de anexos, assinatura digital
+Agenda
+/appointments
+FullCalendar semanal/mensal, arrastar e soltar, modal de agendamento, cores por tipo
+Sala de Espera
+/waiting-room
+Lista em tempo real com cronômetro de espera, botão de check-in e iniciar atendimento
+Autorização
+/authorizations/new
+Formulário rápido, progresso animado em tempo real via WebSocket, histórico
+Guias
+/billing/guides
+Lista com filtros, status colorido, visualizar XML, gerar PDF da guia
+Lotes
+/billing/batches
+Agrupamento por competência, validação antes de enviar, importar retorno
+Relatórios
+/billing/reports
+Gráficos recharts: faturamento por convênio, glosas por motivo, repasses
+Configurar Convênios
+/settings/insurance
+Cards por convênio, form de credenciais, botão testar conexão com feedback
+Usuários
+/settings/users
+CRUD de atendentes e médicos, definição de permissões por papel
+4. Componentes Compartilhados
+Crie os seguintes componentes em src/components/shared/. Todos devem ser acessíveis (ARIA) e responsivos.
+4.1 Componentes de layout
+AppShell: sidebar colapsável, header com usuário logado e tenant, breadcrumb
+Sidebar: menu por módulo com ícones Lucide, collapse em mobile, badge de notificações
+PageHeader: título + subtítulo + slot para botão de ação principal
+4.2 Componentes de dados
+DataTable<T>: tabela genérica com sort, paginação, filtro global, skeleton loading, empty state
+StatusBadge: badge colorido mapeando status para cor (autorizado=verde, negado=vermelho, pendente=amarelo)
+Timeline: lista vertical de eventos com ícone, data/hora e conteúdo — uso no prontuário
+InsuranceCard: card do convênio do paciente com validade e alerta se vencido
+4.3 Componentes de formulário
+CIDAutocomplete: busca CID-10 por código ou descrição com debounce 300ms
+ProcedureSelect: busca CBHPM/TUSS com código e descrição
+DateTimePicker: seletor de data e hora integrado com FullCalendar
+FileUploader: drag-and-drop, preview de imagem/PDF, barra de progresso, validação de tipo e tamanho
+DigitalSignature: campo de assinatura manuscrita (canvas) ou upload de imagem
+4.4 Componentes de feedback
+AuthorizationTracker: componente de progresso animado com etapas: enviando → aguardando → resultado
+NotificationToast: sistema de toasts para sucesso, erro, info e warning (via sonner)
+ConfirmDialog: modal de confirmação reutilizável para ações destrutivas
+EmptyState: ilustração + mensagem + botão de ação para listas vazias
+5. Estado Global e Serviços
+5.1 Zustand Stores
+authStore: user, token, tenant, permissions, login(), logout(), hasPermission(action)
+uiStore: sidebarOpen, theme, activeNotifications, addNotification()
+appointmentStore: selectedDate, selectedDoctor, calendarView — estado persistido entre navegações
+5.2 React Query — padrão de uso
+Use React Query para toda comunicação com a API. Configure staleTime e gcTime por tipo de dado:
+// Dados que mudam frequentemente (agenda, fila de espera)
+staleTime: 30_000   // 30 segundos
+// Dados que mudam raramente (pacientes, médicos, configurações)
+staleTime: 5 * 60_000   // 5 minutos
+5.3 Axios — configuração obrigatória
+Interceptor de request: injeta Authorization: Bearer {token} e X-Tenant-ID automaticamente
+Interceptor de response: captura 401 e tenta refresh automático do token; captura 403 e redireciona
+Tratamento de erro global: mapear erros da API para mensagens amigáveis em português
+5.4 WebSocket — status de autorização
+Use socket.io-client para receber atualizações em tempo real do status de autorizações. O servidor emite eventos no canal authorization:{auth_id}. O componente AuthorizationTracker deve se inscrever e atualizar a UI automaticamente sem polling.
+6. Sistema de Design
+Paleta de cores e tokens obrigatórios
+Primary:    #1E3A5F (azul escuro) — headers, títulos principais
+Secondary:  #2E86C1 (azul médio) — botões, links, destaques
+Success:    #16A34A — status autorizado, confirmações
+Warning:    #D97706 — alertas, pendências, análise
+Danger:     #DC2626 — negado, erros, exclusão
+Neutral:    #F1F5F9 / #64748B — backgrounds, textos secundários
+Font:       Inter (Google Fonts) — sans-serif, legível em telas médicas
+6.1 Responsividade
+Desktop (≥1280px): layout com sidebar fixa de 240px
+Tablet (768px–1279px): sidebar colapsada por padrão, expandir com botão
+Mobile (<768px): sidebar como drawer, tabelas com scroll horizontal, formulários em coluna única
+6.2 Acessibilidade obrigatória
+Todos os inputs com label associado via htmlFor
+Modais com focus trap e Escape para fechar
+Tabela com role=table, th com scope, caption
+Contraste mínimo WCAG AA em todos os textos
+Keyboard navigation funcionando em todos os fluxos principais
+7. Testes e Qualidade
+Vitest + React Testing Library: testes de componentes críticos (formulários, tabelas, modais)
+MSW (Mock Service Worker): interceptar chamadas API nos testes sem servidor real
+Playwright: testes E2E dos fluxos principais: login → agendar → autorizar → gerar guia
+Storybook: documentar componentes compartilhados com stories de cada estado
+Checklist antes de considerar o frontend pronto
+[ ] Login funcionando com redirect por role (admin, atendente, médico)
+[ ] Agenda carregando consultas reais e permitindo agendamento
+[ ] Fluxo de autorização completo com WebSocket funcionando
+[ ] Formulários com validação Zod exibindo erros em português
+[ ] Responsivo: testar em 1280px, 768px e 375px
+[ ] Sem erros no console em nenhuma tela
+[ ] Dados de tenant nunca vazando entre abas/sessões diferentes
+[ ] Loading skeleton em todas as listas e formulários
