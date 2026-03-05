@@ -10,7 +10,10 @@ import type { PatientResponse } from '@/types/api'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
+import { useNavigate } from 'react-router-dom'
+
 export default function PatientsList() {
+    const navigate = useNavigate()
     const [page, setPage] = useState(0)
     const pageSize = 15
 
@@ -62,7 +65,7 @@ export default function PatientsList() {
                             variant="ghost"
                             size="icon"
                             title="Ver detalhes"
-                            onClick={() => window.location.href = `/patients/${row.original.id}`}
+                            onClick={() => navigate(`/patients/${row.original.id}`)}
                         >
                             <Eye className="w-4 h-4 text-primary" />
                         </Button>
@@ -91,7 +94,7 @@ export default function PatientsList() {
                 action={
                     <Button
                         className="bg-secondary hover:bg-secondary/90 text-white"
-                        onClick={() => window.location.href = '/patients/new'}
+                        onClick={() => navigate('/patients/new')}
                     >
                         <Plus className="w-4 h-4 mr-2" /> Novo Paciente
                     </Button>

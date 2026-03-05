@@ -6,6 +6,15 @@ import PatientsList from '@/pages/patients/List'
 import PatientNew from '@/pages/patients/New'
 import PatientDetail from '@/pages/patients/Detail'
 import NewAuthorization from '@/pages/authorizations/New'
+import WaitingRoom from '@/pages/waiting-room/WaitingRoom'
+import Appointments from '@/pages/appointments/Appointments'
+
+import PatientRecords from '@/pages/medical-records/PatientRecords'
+import NewEvolution from '@/pages/medical-records/NewEvolution'
+import BillingGuides from '@/pages/billing/Guides'
+import BillingBatches from '@/pages/billing/Batches'
+import InsuranceSettings from '@/pages/settings/Insurances'
+import UserSettings from '@/pages/settings/Users'
 
 const Placeholder = ({ title }: { title: string }) => (
     <div className="p-8 flex items-center justify-center">
@@ -36,7 +45,13 @@ export const router = createBrowserRouter([
                     { index: true, element: <PatientsList /> },
                     { path: 'new', element: <PatientNew /> },
                     { path: ':id', element: <PatientDetail /> },
-                    { path: ':id/records', element: <Placeholder title="Patient Records" /> },
+                    {
+                        path: ':id/records',
+                        children: [
+                            { index: true, element: <PatientRecords /> },
+                            { path: 'new', element: <NewEvolution /> },
+                        ]
+                    },
                 ]
             },
             {
@@ -45,11 +60,11 @@ export const router = createBrowserRouter([
             },
             {
                 path: 'appointments',
-                element: <Placeholder title="Appointments Calendar" />,
+                element: <Appointments />,
             },
             {
                 path: 'waiting-room',
-                element: <Placeholder title="Waiting Room" />,
+                element: <WaitingRoom />,
             },
             {
                 path: 'authorizations/new',
@@ -58,16 +73,16 @@ export const router = createBrowserRouter([
             {
                 path: 'billing',
                 children: [
-                    { path: 'guides', element: <Placeholder title="Billing Guides" /> },
-                    { path: 'batches', element: <Placeholder title="Billing Batches" /> },
+                    { path: 'guides', element: <BillingGuides /> },
+                    { path: 'batches', element: <BillingBatches /> },
                     { path: 'reports', element: <Placeholder title="Billing Reports" /> },
                 ]
             },
             {
                 path: 'settings',
                 children: [
-                    { path: 'insurance', element: <Placeholder title="Insurance Settings" /> },
-                    { path: 'users', element: <Placeholder title="Users Settings" /> },
+                    { path: 'insurances', element: <InsuranceSettings /> },
+                    { path: 'users', element: <UserSettings /> },
                 ]
             },
         ]
