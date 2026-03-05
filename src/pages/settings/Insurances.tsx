@@ -8,9 +8,11 @@ import { Plus, Edit, Trash2 } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
 import type { InsuranceConfigResponse } from '@/types/api'
 import { toast } from 'sonner'
+import { useNavigate } from 'react-router-dom'
 
 export default function InsuranceSettings() {
     const queryClient = useQueryClient()
+    const navigate = useNavigate()
 
     const { data: insurancesPage, isLoading } = useQuery({
         queryKey: ['insurance-configs'],
@@ -51,7 +53,11 @@ export default function InsuranceSettings() {
             id: 'actions',
             cell: ({ row }) => (
                 <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="icon">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => navigate(`/settings/insurances/${row.original.id}`)}
+                    >
                         <Edit className="w-4 h-4" />
                     </Button>
                     <Button
@@ -77,7 +83,10 @@ export default function InsuranceSettings() {
                 title="Configurações de Convênios"
                 subtitle="Gerencie os registros ANS e versões TISS das operadoras"
                 action={
-                    <Button className="bg-secondary hover:bg-secondary/90 text-white">
+                    <Button
+                        className="bg-secondary hover:bg-secondary/90 text-white"
+                        onClick={() => navigate('/settings/insurances/new')}
+                    >
                         <Plus className="w-4 h-4 mr-2" /> Novo Convênio
                     </Button>
                 }

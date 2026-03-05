@@ -21,6 +21,11 @@ export const insuranceConfigService = {
         return response.data
     },
 
+    update: async (id: string, data: InsuranceConfigRequest): Promise<InsuranceConfigResponse> => {
+        const response = await api.put<InsuranceConfigResponse>(`/api/v1/insurance-configs/${id}`, data)
+        return response.data
+    },
+
     delete: async (id: string): Promise<void> => {
         await api.delete(`/api/v1/insurance-configs/${id}`)
     },

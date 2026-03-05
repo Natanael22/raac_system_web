@@ -4,14 +4,16 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import ptBrLocale from '@fullcalendar/core/locales/pt-br'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { appointmentService } from '@/services/appointmentService'
 import { doctorService } from '@/services/doctorService'
+import { billingService } from '@/services/billingService'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -19,6 +21,19 @@ export default function Appointments() {
     const navigate = useNavigate()
     const calendarRef = useRef<FullCalendar>(null)
     const [selectedDoctorId, setSelectedDoctorId] = useState<string>('all')
+    const [selectedEvent, setSelectedEvent] = useState<any>(null)
+
+    const generateGuideMutation = useMutation({
+        mutationFn: (appointmentId: string) => billingService.createFromAppointment(appointmentId),
+        onSuccess: () => {
+            toast.success('Guia TISS gerada com sucesso!')
+            setSelectedEvent(null)
+            navigate('/billing/guides')
+        },
+        onError: () => {
+            toast.error('Erro ao gerar guia. O agendamento pode já possuir uma guia ou faltam dados.')
+        }
+    })
 
     const { data: doctorsPage } = useQuery({
         queryKey: ['doctors'],
@@ -110,8 +125,7 @@ export default function Appointments() {
                                 allDaySlot={false}
                                 height="auto"
                                 eventClick={(info) => {
-                                    toast.info(`Agendamento de ${info.event.title}`)
-                                    // navigate(`/appointments/${info.event.id}`)
+                                    setSelectedEvent(info.event)
                                 }}
                                 dateClick={(info) => {
                                     toast(`Nova consulta em ${info.dateStr}`)
@@ -121,6 +135,45 @@ export default function Appointments() {
                     </div>
                 </CardContent>
             </Card>
+
+            <Dialog open={!!selectedEvent} onOpenChange={(open) => !open && setSelectedEvent(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Detalhes do Agendamento</DialogTitle>
+                    </DialogHeader>
+                    {selectedEvent && (
+                        <div className="space-y-4 pt-4">
+                            <div>
+                                <p className="text-sm text-muted-foreground uppercase font-semibold">Paciente</p>
+                                <p className="font-medium text-lg">{selectedEvent.extendedProps.patientName}</p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-sm text-muted-foreground uppercase font-semibold">Médico</p>
+                                    <p className="font-medium">{selectedEvent.extendedProps.doctorName}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-muted-foreground uppercase font-semibold">Status</p>
+                                    <p className="font-medium">{selectedEvent.extendedProps.status}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end pt-4 border-t mt-4 gap-2">
+                                <Button variant="outline" onClick={() => setSelectedEvent(null)}>Fechar</Button>
+                                {selectedEvent.extendedProps.status === 'FINALIZADO' && (
+                                    <Button
+                                        className="bg-primary hover:bg-primary-dark"
+                                        disabled={generateGuideMutation.isPending}
+                                        onClick={() => generateGuideMutation.mutate(selectedEvent.id)}
+                                    >
+                                        {generateGuideMutation.isPending ? 'Gerando...' : 'Gerar Guia TISS'}
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
 
             <style>{`
         .fc .fc-button-primary {

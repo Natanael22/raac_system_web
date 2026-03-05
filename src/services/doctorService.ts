@@ -21,6 +21,11 @@ export const doctorService = {
         return response.data
     },
 
+    update: async (id: string, data: DoctorRequest): Promise<DoctorResponse> => {
+        const response = await api.put<DoctorResponse>(`/api/v1/doctors/${id}`, data)
+        return response.data
+    },
+
     delete: async (id: string): Promise<void> => {
         await api.delete(`/api/v1/doctors/${id}`)
     },

@@ -15,12 +15,14 @@ import { cn } from '@/lib/utils'
 
 const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/patients', label: 'Pacientes', icon: Users },
     { path: '/appointments', label: 'Agenda', icon: Calendar },
     { path: '/waiting-room', label: 'Sala de Espera', icon: Clock },
     { path: '/authorizations/new', label: 'Autorizações', icon: FileCheck },
     { path: '/billing/guides', label: 'Faturamento', icon: Receipt },
-    { path: '/settings/users', label: 'Configurações', icon: Settings },
+    { path: '/patients', label: 'Pacientes', icon: Users },
+    { path: '/settings/users', label: 'Usuários', icon: Users },
+    { path: '/settings/doctors', label: 'Médicos', icon: Users },
+    { path: '/settings/insurances', label: 'Convênios', icon: Settings },
 ]
 
 export function Sidebar() {

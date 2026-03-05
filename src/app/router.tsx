@@ -8,13 +8,17 @@ import PatientDetail from '@/pages/patients/Detail'
 import NewAuthorization from '@/pages/authorizations/New'
 import WaitingRoom from '@/pages/waiting-room/WaitingRoom'
 import Appointments from '@/pages/appointments/Appointments'
+import NewAppointment from '@/pages/appointments/New'
 
 import PatientRecords from '@/pages/medical-records/PatientRecords'
 import NewEvolution from '@/pages/medical-records/NewEvolution'
 import BillingGuides from '@/pages/billing/Guides'
 import BillingBatches from '@/pages/billing/Batches'
 import InsuranceSettings from '@/pages/settings/Insurances'
+import InsuranceConfigForm from '@/pages/settings/insurances/Form'
 import UserSettings from '@/pages/settings/Users'
+import DoctorsList from '@/pages/settings/doctors/List'
+import DoctorForm from '@/pages/settings/doctors/Form'
 
 const Placeholder = ({ title }: { title: string }) => (
     <div className="p-8 flex items-center justify-center">
@@ -60,7 +64,10 @@ export const router = createBrowserRouter([
             },
             {
                 path: 'appointments',
-                element: <Appointments />,
+                children: [
+                    { index: true, element: <Appointments /> },
+                    { path: 'new', element: <NewAppointment /> }
+                ]
             },
             {
                 path: 'waiting-room',
@@ -82,7 +89,12 @@ export const router = createBrowserRouter([
                 path: 'settings',
                 children: [
                     { path: 'insurances', element: <InsuranceSettings /> },
+                    { path: 'insurances/new', element: <InsuranceConfigForm /> },
+                    { path: 'insurances/:id', element: <InsuranceConfigForm /> },
                     { path: 'users', element: <UserSettings /> },
+                    { path: 'doctors', element: <DoctorsList /> },
+                    { path: 'doctors/new', element: <DoctorForm /> },
+                    { path: 'doctors/:id', element: <DoctorForm /> }
                 ]
             },
         ]

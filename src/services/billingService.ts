@@ -10,6 +10,11 @@ export const billingService = {
         return response.data
     },
 
+    createFromAppointment: async (appointmentId: string): Promise<BillingGuide> => {
+        const response = await api.post<BillingGuide>(`/api/v1/billing/guides/from-appointment/${appointmentId}`)
+        return response.data
+    },
+
     createBatch: async (data: BatchRequest): Promise<BillingBatch> => {
         const response = await api.post<BillingBatch>('/api/v1/billing/batches', data)
         return response.data

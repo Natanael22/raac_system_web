@@ -22,6 +22,12 @@ export const patientService = {
         return response.data
     },
 
+    updateStatus: async (id: string, active: boolean): Promise<PatientResponse> => {
+        // Assume sending active status
+        const response = await api.patch<PatientResponse>(`/api/v1/patients/${id}/status`, { active })
+        return response.data
+    },
+
     delete: async (id: string): Promise<void> => {
         await api.delete(`/api/v1/patients/${id}`)
     },
