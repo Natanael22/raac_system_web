@@ -20,9 +20,10 @@ const formSchema = z.object({
     crm: z.string().min(1, 'CRM é obrigatório'),
     ufCrm: z.string().min(2, 'UF do CRM é obrigatória').max(2),
     specialty: z.string().optional(),
-    baBankCode: z.string().optional(),
-    baAgency: z.string().optional(),
-    baAccount: z.string().optional(),
+    bankCode: z.string().optional(),
+    bankAgency: z.string().optional(),
+    bankAccount: z.string().optional(),
+    status: z.enum(['ACTIVE', 'INACTIVE']),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -52,9 +53,10 @@ export default function DoctorForm() {
             crm: '',
             ufCrm: 'SP',
             specialty: '',
-            baBankCode: '',
-            baAgency: '',
-            baAccount: '',
+            bankCode: '',
+            bankAgency: '',
+            bankAccount: '',
+            status: 'ACTIVE',
         }
     })
 
@@ -62,10 +64,14 @@ export default function DoctorForm() {
         if (doctor) {
             setValue('name', doctor.name)
             setValue('crm', doctor.crm)
-            // Na v1, ufCrm e dados bancarios nao voltam no DoctorResponse (conforme swagger current) 
-            // Eles sao envios raw. Ajustamos aqui para nao sobrescrever com strings vazias 
-            // caso a API comece a retornar em futuras versoes
-            if ((doctor as any).specialty) setValue('specialty', doctor.specialty)
+            if (doctor.ufCrm) setValue('ufCrm', doctor.ufCrm)
+            if (doctor.specialty) setValue('specialty', doctor.specialty)
+            if (doctor.bankCode) setValue('bankCode', doctor.bankCode)
+            if (doctor.bankAgency) setValue('bankAgency', doctor.bankAgency)
+            if (doctor.bankAccount) setValue('bankAccount', doctor.bankAccount)
+            if (doctor.status && (doctor.status === 'ACTIVE' || doctor.status === 'INACTIVE')) {
+                setValue('status', doctor.status)
+            }
         }
     }, [doctor, setValue])
 
@@ -74,6 +80,7 @@ export default function DoctorForm() {
             if (isEditMode) {
                 return doctorService.update(id!, data)
             }
+
             return doctorService.create(data)
         },
         onSuccess: () => {
@@ -87,14 +94,16 @@ export default function DoctorForm() {
     })
 
     const onSubmit = (data: FormData) => {
-        mutation.mutate(data as DoctorRequest)
+        mutation.mutate(data as unknown as DoctorRequest)
     }
 
     if (isEditMode && isLoadingDoctor) {
-        return <div className="p-8 animate-pulse space-y-4">
-            <div className="h-8 bg-neutral-100 rounded w-1/4"></div>
-            <div className="h-64 bg-neutral-50 rounded"></div>
-        </div>
+        return (
+            <div className="p-8 animate-pulse space-y-4">
+                <div className="h-8 bg-neutral-100 rounded w-1/4"></div>
+                <div className="h-64 bg-neutral-50 rounded"></div>
+            </div>
+        )
     }
 
     return (
@@ -167,6 +176,22 @@ export default function DoctorForm() {
                                 {...register('specialty')}
                             />
                         </div>
+                        <div className="space-y-2 md:col-span-2">
+                            <Label htmlFor="status">Status</Label>
+                            <Select
+                                value={watch('status')}
+                                onValueChange={(val: FormData['status']) => setValue('status', val)}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecione o status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="ACTIVE">Ativo</SelectItem>
+                                    <SelectItem value="INACTIVE">Inativo</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <input type="hidden" {...register('status')} />
+                        </div>
                     </CardContent>
                 </Card>
 
@@ -180,29 +205,29 @@ export default function DoctorForm() {
                     </CardHeader>
                     <CardContent className="grid md:grid-cols-3 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="baBankCode">Código do Banco</Label>
+                            <Label htmlFor="bankCode">Código do Banco</Label>
                             <Input
-                                id="baBankCode"
+                                id="bankCode"
                                 placeholder="Ex: 341 (Itaú)"
-                                {...register('baBankCode')}
+                                {...register('bankCode')}
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="baAgency">Agência</Label>
+                            <Label htmlFor="bankAgency">Agência</Label>
                             <Input
-                                id="baAgency"
+                                id="bankAgency"
                                 placeholder="Ex: 0001"
-                                {...register('baAgency')}
+                                {...register('bankAgency')}
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="baAccount">Conta com Dígito</Label>
+                            <Label htmlFor="bankAccount">Conta com Dígito</Label>
                             <Input
-                                id="baAccount"
+                                id="bankAccount"
                                 placeholder="Ex: 12345-6"
-                                {...register('baAccount')}
+                                {...register('bankAccount')}
                             />
                         </div>
                     </CardContent>

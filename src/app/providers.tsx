@@ -1,16 +1,7 @@
 import type { ReactNode } from 'react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from '@/components/ui/sonner'
-
-export const queryClient = new QueryClient({
-    defaultOptions: {
-        queries: {
-            retry: 1,
-            refetchOnWindowFocus: false,
-            staleTime: 5 * 60_000, // 5 minutes by default
-        },
-    },
-})
+import { queryClient } from '@/lib/query-client'
 
 interface ProvidersProps {
     children: ReactNode

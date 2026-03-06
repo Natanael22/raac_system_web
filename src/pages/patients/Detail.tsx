@@ -12,6 +12,8 @@ import { toast } from 'sonner'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PatientInsurances } from './components/PatientInsurances'
+import { patientInsuranceService } from '@/services/patientInsuranceService'
+import { appointmentService } from '@/services/appointmentService'
 
 export default function PatientDetail() {
     const { id } = useParams<{ id: string }>()
@@ -22,6 +24,18 @@ export default function PatientDetail() {
         queryFn: () => patientService.get(id!),
         enabled: !!id,
         retry: 1
+    })
+
+    const { data: insurances } = useQuery({
+        queryKey: ['patient-insurances', id],
+        queryFn: () => patientInsuranceService.list(id!),
+        enabled: !!id,
+    })
+
+    const { data: appointmentsResponse } = useQuery({
+        queryKey: ['patient-appointments', id],
+        queryFn: () => appointmentService.list({ size: 100 }), // In a real app we'd filter by patient in the API
+        enabled: !!id,
     })
 
     const [isActive, setIsActive] = useState(true)
@@ -151,11 +165,38 @@ export default function PatientDetail() {
                             <CardContent className="space-y-4">
                                 <div className="p-3 bg-neutral-light rounded-md">
                                     <p className="text-xs text-muted-foreground font-semibold uppercase mb-1">Última Consulta</p>
-                                    <p className="text-sm font-medium">Buscando...</p>
+                                    <p className="text-sm font-medium">
+                                        {appointmentsResponse ? (() => {
+                                            const patientAppointments = appointmentsResponse.content.filter(a => a.patientId === id)
+                                            const pastAppointments = patientAppointments.filter(a => new Date(a.startDt) < new Date()).sort((a, b) => new Date(b.startDt).getTime() - new Date(a.startDt).getTime())
+                                            if (pastAppointments.length > 0) {
+                                                return format(new Date(pastAppointments[0].startDt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
+                                            }
+                                            return 'Nenhuma'
+                                        })() : 'Buscando...'}
+                                    </p>
+                                </div>
+                                <div className="p-3 bg-neutral-light rounded-md">
+                                    <p className="text-xs text-muted-foreground font-semibold uppercase mb-1">Próxima Consulta</p>
+                                    <p className="text-sm font-medium">
+                                        {appointmentsResponse ? (() => {
+                                            const patientAppointments = appointmentsResponse.content.filter(a => a.patientId === id && a.status !== 'CANCELADO')
+                                            const futureAppointments = patientAppointments.filter(a => new Date(a.startDt) > new Date()).sort((a, b) => new Date(a.startDt).getTime() - new Date(b.startDt).getTime())
+                                            if (futureAppointments.length > 0) {
+                                                return format(new Date(futureAppointments[0].startDt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
+                                            }
+                                            return 'Nenhuma agendada'
+                                        })() : 'Buscando...'}
+                                    </p>
                                 </div>
                                 <div className="p-3 bg-neutral-light rounded-md">
                                     <p className="text-xs text-muted-foreground font-semibold uppercase mb-1">Convênio Ativo</p>
-                                    <p className="text-sm font-medium">Buscando...</p>
+                                    <p className="text-sm font-medium">
+                                        {insurances ? (() => {
+                                            const activeInsurance = insurances.find(i => i.status === 'ACTIVE')
+                                            return activeInsurance ? `${activeInsurance.operatorName} - ${activeInsurance.plan || 'Plano Básico'}` : 'Particular'
+                                        })() : 'Buscando...'}
+                                    </p>
                                 </div>
                             </CardContent>
                         </Card>

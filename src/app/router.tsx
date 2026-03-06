@@ -19,12 +19,7 @@ import InsuranceConfigForm from '@/pages/settings/insurances/Form'
 import UserSettings from '@/pages/settings/Users'
 import DoctorsList from '@/pages/settings/doctors/List'
 import DoctorForm from '@/pages/settings/doctors/Form'
-
-const Placeholder = ({ title }: { title: string }) => (
-    <div className="p-8 flex items-center justify-center">
-        <h1 className="text-2xl font-bold">{title}</h1>
-    </div>
-)
+import { Placeholder } from '@/components/shared/Placeholder'
 
 export const router = createBrowserRouter([
     {

@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -22,6 +22,7 @@ const formSchema = z.object({
     webserviceUrl: z.string().optional(),
     credentials: z.string().optional(),
     certPassword: z.string().optional(),
+    status: z.enum(['ACTIVE', 'INACTIVE']),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -42,17 +43,18 @@ export default function InsuranceConfigForm() {
         register,
         handleSubmit,
         setValue,
-        watch,
+        control,
         formState: { errors, isSubmitting },
     } = useForm<FormData>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             operatorName: '',
             operatorAnscode: '',
-            environment: 'PROD',
+            environment: 'DEV',
             webserviceUrl: '',
             credentials: '',
             certPassword: '',
+            status: 'ACTIVE',
         }
     })
 
@@ -60,8 +62,13 @@ export default function InsuranceConfigForm() {
         if (config) {
             setValue('operatorName', config.operatorName)
             setValue('operatorAnscode', config.operatorAnscode)
-            setValue('environment', config.environment)
+            if (config.environment && (config.environment === 'DEV' || config.environment === 'HML' || config.environment === 'PROD')) {
+                setValue('environment', config.environment)
+            }
             if (config.webserviceUrl) setValue('webserviceUrl', config.webserviceUrl)
+            if (config.status && (config.status === 'ACTIVE' || config.status === 'INACTIVE')) {
+                setValue('status', config.status)
+            }
         }
     }, [config, setValue])
 
@@ -83,7 +90,7 @@ export default function InsuranceConfigForm() {
     })
 
     const onSubmit = (data: FormData) => {
-        mutation.mutate(data as InsuranceConfigRequest)
+        mutation.mutate(data as unknown as InsuranceConfigRequest)
     }
 
     if (isEditMode && isLoadingConfig) {
@@ -135,21 +142,42 @@ export default function InsuranceConfigForm() {
 
                         <div className="space-y-2 md:col-span-2">
                             <Label htmlFor="environment">Ambiente *</Label>
-                            <Select
-                                value={watch('environment')}
-                                onValueChange={(val: any) => setValue('environment', val)}
-                            >
-                                <SelectTrigger className={errors.environment ? 'border-danger' : ''}>
-                                    <SelectValue placeholder="Selecione..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="DEV">Desenvolvimento (DEV)</SelectItem>
-                                    <SelectItem value="HML">Homologação (HML)</SelectItem>
-                                    <SelectItem value="PROD">Produção (PROD)</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <input type="hidden" {...register('environment')} />
+                            <Controller
+                                control={control}
+                                name="environment"
+                                render={({ field }) => (
+                                    <Select value={field.value} onValueChange={field.onChange}>
+                                        <SelectTrigger className={errors.environment ? 'border-danger' : ''}>
+                                            <SelectValue placeholder="Selecione..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="DEV">Desenvolvimento (DEV)</SelectItem>
+                                            <SelectItem value="HML">Homologação (HML)</SelectItem>
+                                            <SelectItem value="PROD">Produção (PROD)</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                             {errors.environment && <p className="text-xs text-danger">{errors.environment.message}</p>}
+                        </div>
+
+                        <div className="space-y-2 md:col-span-2">
+                            <Label htmlFor="status">Status</Label>
+                            <Controller
+                                control={control}
+                                name="status"
+                                render={({ field }) => (
+                                    <Select value={field.value} onValueChange={field.onChange}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecione o status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="ACTIVE">Ativo</SelectItem>
+                                            <SelectItem value="INACTIVE">Inativo</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                         </div>
                     </CardContent>
                 </Card>

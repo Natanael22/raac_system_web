@@ -90,7 +90,12 @@ export default function NewAppointment() {
     })
 
     const onSubmit = (data: FormData) => {
-        mutation.mutate(data as AppointmentRequest)
+        const payload: AppointmentRequest = {
+            ...data,
+            startDt: data.startDt.length === 16 ? `${data.startDt}:00` : data.startDt,
+            endDt: data.endDt.length === 16 ? `${data.endDt}:00` : data.endDt,
+        }
+        mutation.mutate(payload)
     }
 
     return (

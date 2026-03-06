@@ -42,11 +42,12 @@ export default function DoctorsList() {
                     <div className="flex justify-end gap-2">
                         <Button
                             variant="ghost"
-                            size="icon"
+                            size="sm"
                             title="Editar Médico"
                             onClick={() => navigate(`/settings/doctors/${row.original.id}`)}
                         >
-                            <Edit className="w-4 h-4 text-primary" />
+                            <Edit className="w-4 h-4 mr-2 text-primary" />
+                            Editar
                         </Button>
                     </div>
                 )

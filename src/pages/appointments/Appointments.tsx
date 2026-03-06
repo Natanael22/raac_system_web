@@ -87,7 +87,7 @@ export default function Appointments() {
 
             <Card className="flex-1 overflow-hidden flex flex-col">
                 <CardContent className="p-6 flex flex-col h-full gap-4">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center justify-between gap-4">
                         <div className="w-64">
                             <Select value={selectedDoctorId} onValueChange={setSelectedDoctorId}>
                                 <SelectTrigger>
@@ -103,7 +103,7 @@ export default function Appointments() {
                         </div>
                     </div>
 
-                    <div className="flex-1 min-h-[600px] border rounded-md p-4 bg-white calendar-container">
+                    <div className="flex-1 min-h-[600px] border rounded-md p-4 bg-gray-50 calendar-container">
                         {isLoading ? (
                             <div className="h-full flex items-center justify-center">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -177,15 +177,15 @@ export default function Appointments() {
 
             <style>{`
         .fc .fc-button-primary {
-          background-color: var(--primary);
-          border-color: var(--primary);
+          background-color: #1a3353;
+          border-color: #1a3353;
         }
         .fc .fc-button-primary:hover {
-          background-color: #1a3353;
+          background-color: #457abfff;
         }
         .fc .fc-button-primary:disabled {
-          background-color: #ccc;
-          border-color: #ccc;
+          background-color: #121111ff;
+          border-color: #121111ff;
         }
         .fc .fc-event {
           cursor: pointer;

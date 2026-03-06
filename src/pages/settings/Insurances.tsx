@@ -55,10 +55,11 @@ export default function InsuranceSettings() {
                 <div className="flex justify-end gap-2">
                     <Button
                         variant="ghost"
-                        size="icon"
+                        size="sm"
                         onClick={() => navigate(`/settings/insurances/${row.original.id}`)}
                     >
-                        <Edit className="w-4 h-4" />
+                        <Edit className="w-4 h-4 mr-2" />
+                        Editar
                     </Button>
                     <Button
                         variant="ghost"
@@ -67,6 +68,7 @@ export default function InsuranceSettings() {
                         onClick={() => {
                             if (confirm('Deseja realmente excluir esta configuração?')) {
                                 deleteMutation.mutate(row.original.id)
+
                             }
                         }}
                     >

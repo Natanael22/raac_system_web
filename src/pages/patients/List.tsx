@@ -63,11 +63,12 @@ export default function PatientsList() {
                     <div className="flex justify-end gap-2">
                         <Button
                             variant="ghost"
-                            size="icon"
+                            size="sm"
                             title="Ver detalhes"
                             onClick={() => navigate(`/patients/${row.original.id}`)}
                         >
-                            <Eye className="w-4 h-4 text-primary" />
+                            <Eye className="w-4 h-4 mr-2 text-primary" />
+                            Detalhes
                         </Button>
                     </div>
                 )

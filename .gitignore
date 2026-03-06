@@ -25,3 +25,8 @@ dist-ssr
 
 # arquivos
 frontend_implementation_prompt.md
+api-docs.json
+api-schemas.json
+parse.cjs
+parse.js
+schemas2.json

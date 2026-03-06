@@ -74,15 +74,26 @@ export interface PatientRequest {
     addressNumber?: string
     addressCity?: string
     addressState?: string
+    status?: UserStatus // ACTIVE/INACTIVE
 }
 
 export interface PatientResponse {
     id: string
     name: string
     cpf?: string
+    cns?: string
     prontuarioNumber?: string
     birthDate: string
+    sex?: Sex
+    maritalStatus?: string
+    bloodType?: string
     phone?: string
+    email?: string
+    addressStreet?: string
+    addressNumber?: string
+    addressCity?: string
+    addressState?: string
+    status?: UserStatus
 }
 
 // --- Doctors ---
@@ -92,16 +103,23 @@ export interface DoctorRequest {
     crm: string
     ufCrm: string
     specialty?: string
-    baBankCode?: string
-    baAgency?: string
-    baAccount?: string
+    bankCode?: string
+    bankAgency?: string
+    bankAccount?: string
+    status?: UserStatus
 }
 
 export interface DoctorResponse {
     id: string
     name: string
     crm: string
+    ufCrm?: string
+    rqe?: string
     specialty?: string
+    bankCode?: string
+    bankAgency?: string
+    bankAccount?: string
+    status?: UserStatus
 }
 
 // --- Appointments ---
@@ -169,6 +187,7 @@ export interface InsuranceConfigRequest {
     webserviceUrl?: string
     credentials?: string
     certPassword?: string
+    status?: UserStatus
 }
 
 export interface InsuranceConfigResponse {
@@ -177,6 +196,7 @@ export interface InsuranceConfigResponse {
     operatorAnscode: string
     environment: InsuranceEnvironment
     webserviceUrl?: string
+    status?: UserStatus
 }
 
 // --- Billing ---
