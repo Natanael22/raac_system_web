@@ -30,6 +30,7 @@ export function PatientInsurances({ patientId }: { patientId: string }) {
     const { data: insurances, isLoading } = useQuery({
         queryKey: ['patient-insurances', patientId],
         queryFn: () => patientInsuranceService.list(patientId),
+
     })
 
     const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
@@ -133,18 +134,27 @@ export function PatientInsurances({ patientId }: { patientId: string }) {
                 </div>
             ) : (
                 <div className="grid md:grid-cols-2 gap-4">
-                    {insurances.map(ins => (
-                        <InsuranceCard
-                            key={ins.id}
-                            insurance={{
-                                name: ins.operatorName,
-                                plan: ins.plan || 'Não informado',
-                                number: ins.cardNumber,
-                                // Defaulting to "indeterminado" if validity is not set or parsing fails
-                                expiryDate: ins.validity ? format(new Date(ins.validity + 'T00:00:00'), 'dd/MM/yyyy') : '2100-01-01'
-                            }}
-                        />
-                    ))}
+                    {insurances.map((ins, idx) => {
+                        let expiryLabel = 'Indeterminado'
+                        if (ins.validity) {
+                            try {
+                                expiryLabel = format(new Date(ins.validity + 'T00:00:00'), 'dd/MM/yyyy')
+                            } catch {
+                                expiryLabel = ins.validity
+                            }
+                        }
+                        return (
+                            <InsuranceCard
+                                key={ins.id ?? idx}
+                                insurance={{
+                                    name: ins.operatorName,
+                                    plan: ins.plan || 'Não informado',
+                                    number: ins.cardNumber,
+                                    expiryDate: expiryLabel,
+                                }}
+                            />
+                        )
+                    })}
                 </div>
             )}
         </div>

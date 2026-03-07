@@ -16,6 +16,7 @@ import { authorizationService } from '@/services/authorizationService'
 import { doctorService } from '@/services/doctorService'
 import { insuranceConfigService } from '@/services/insuranceConfigService'
 import type { AuthStatus, AuthResult } from '@/components/shared/AuthorizationTracker'
+import { patientService } from '@/services/patientService'
 
 const schema = z.object({
     patientId: z.string().min(1, 'Informe o ID do paciente'),
@@ -37,6 +38,12 @@ export default function NewAuthorization() {
         resolver: zodResolver(schema),
     })
 
+    const { data: patientsPage } = useQuery({
+        queryKey: ['patients'],
+        queryFn: () => patientService.list({ size: 100 }),
+        staleTime: 5 * 60_000,
+    })
+
     const { data: doctorsPage } = useQuery({
         queryKey: ['doctors'],
         queryFn: () => doctorService.list({ size: 100 }),
@@ -49,6 +56,7 @@ export default function NewAuthorization() {
         staleTime: 5 * 60_000,
     })
 
+    const patients = patientsPage?.content ?? []
     const doctors = doctorsPage?.content ?? []
     const insurances = insurancePage?.content ?? []
 
@@ -140,12 +148,19 @@ export default function NewAuthorization() {
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="patientId">ID do Paciente</Label>
-                                <Input
-                                    id="patientId"
-                                    placeholder="UUID do paciente"
-                                    {...register('patientId')}
-                                    className={errors.patientId ? 'border-danger focus-visible:ring-danger' : ''}
-                                />
+
+                                <Select onValueChange={(v) => setValue('patientId', v)}>
+                                    <SelectTrigger id="patientId" className={errors.doctorId ? 'border-danger' : ''}>
+                                        <SelectValue placeholder="Selecione o paciente..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {patients.map(p => (
+                                            <SelectItem key={p.id} value={p.id}>
+                                                {p.name} (Convenio: {p.phone})
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                                 {errors.patientId && <p className="text-xs text-danger">{errors.patientId.message}</p>}
                             </div>
 

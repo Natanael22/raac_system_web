@@ -4,24 +4,29 @@ import { patientService } from '@/services/patientService'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { DataTable } from '@/components/shared/DataTable'
 import { Button } from '@/components/ui/button'
-import { Plus, Eye } from 'lucide-react'
+import { Plus, Eye, Edit } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import type { ColumnDef } from '@tanstack/react-table'
 import type { PatientResponse } from '@/types/api'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-
 import { useNavigate } from 'react-router-dom'
 
 export default function PatientsList() {
     const navigate = useNavigate()
     const [page, setPage] = useState(0)
     const pageSize = 15
+    const [selectedPatient, setSelectedPatient] = useState<PatientResponse | null>(null)
 
     const { data, isLoading, isError } = useQuery({
         queryKey: ['patients', page],
         queryFn: () => patientService.list({ page, size: pageSize }),
         staleTime: 5 * 60_000,
     })
+
+    const handleOpenDialog = (patient: PatientResponse) => {
+        setSelectedPatient(patient)
+    }
 
     const columns: ColumnDef<PatientResponse>[] = [
         {
@@ -65,10 +70,19 @@ export default function PatientsList() {
                             variant="ghost"
                             size="sm"
                             title="Ver detalhes"
-                            onClick={() => navigate(`/patients/${row.original.id}`)}
+                            onClick={() => handleOpenDialog(row.original)}
                         >
                             <Eye className="w-4 h-4 mr-2 text-primary" />
-                            Detalhes
+                            Ver
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            title="Editar"
+                            onClick={() => navigate(`/patients/${row.original.id}`)}
+                        >
+                            <Edit className="w-4 h-4 mr-2 text-primary" />
+                            Editar
                         </Button>
                     </div>
                 )
@@ -136,6 +150,54 @@ export default function PatientsList() {
                     </div>
                 </div>
             )}
+
+            {/* Dialog de Visualização do Paciente */}
+            <Dialog open={!!selectedPatient} onOpenChange={(open) => !open && setSelectedPatient(null)}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Dados do Paciente</DialogTitle>
+                    </DialogHeader>
+                    {selectedPatient && (
+                        <div className="space-y-3 text-sm">
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <p className="text-xs text-muted-foreground uppercase font-semibold">Nome</p>
+                                    <p className="font-medium">{selectedPatient.name}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-muted-foreground uppercase font-semibold">CPF</p>
+                                    <p className="font-medium">{selectedPatient.cpf || '—'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-muted-foreground uppercase font-semibold">CNS</p>
+                                    <p className="font-medium">{selectedPatient.cns || '—'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-muted-foreground uppercase font-semibold">Nascimento</p>
+                                    <p className="font-medium">
+                                        {selectedPatient.birthDate
+                                            ? format(new Date(selectedPatient.birthDate + 'T00:00:00'), 'dd/MM/yyyy', { locale: ptBR })
+                                            : '—'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-muted-foreground uppercase font-semibold">Telefone</p>
+                                    <p className="font-medium">{selectedPatient.phone || '—'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-muted-foreground uppercase font-semibold">Prontuário</p>
+                                    <p className="font-medium">{selectedPatient.prontuarioNumber || '—'}</p>
+                                </div>
+                            </div>
+                            <div className="pt-3 flex justify-end">
+                                <Button size="sm" onClick={() => navigate(`/patients/${selectedPatient.id}`)}>
+                                    Abrir Ficha Completa
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

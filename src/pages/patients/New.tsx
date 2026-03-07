@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { patientService } from '@/services/patientService'
+import { patientInsuranceService } from '@/services/patientInsuranceService'
+import type { PatientInsuranceRequest } from '@/services/patientInsuranceService'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -13,7 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner'
 import type { PatientRequest } from '@/types/api'
 
-const schema = z.object({
+// --- Schema do Paciente ---
+const patientSchema = z.object({
     name: z.string().min(1, 'Nome é obrigatório'),
     cpf: z.string().optional(),
     cns: z.string().optional(),
@@ -30,20 +33,36 @@ const schema = z.object({
     addressState: z.string().optional(),
 })
 
-type PatientForm = z.infer<typeof schema>
+// --- Schema do Convênio (opcional) ---
+const insuranceSchema = z.object({
+    operatorName: z.string().optional(),
+    cardNumber: z.string().optional(),
+    plan: z.string().optional(),
+    validity: z.string().optional(),
+    accommodation: z.string().optional(),
+})
+
+type PatientForm = z.infer<typeof patientSchema>
+type InsuranceForm = z.infer<typeof insuranceSchema>
 
 export default function PatientNew() {
     const navigate = useNavigate()
     const [loading, setLoading] = useState(false)
 
-    const { register, handleSubmit, setValue, formState: { errors } } = useForm<PatientForm>({
-        resolver: zodResolver(schema),
+    const {
+        register,
+        handleSubmit,
+        setValue,
+        formState: { errors },
+    } = useForm<PatientForm>({ resolver: zodResolver(patientSchema) })
+
+    const { register: registerInsurance } = useForm<InsuranceForm>({
+        resolver: zodResolver(insuranceSchema),
     })
 
     const onSubmit = async (data: PatientForm) => {
         setLoading(true)
         try {
-            // Clean up empty optional fields
             const payload: PatientRequest = {
                 name: data.name,
                 birthDate: data.birthDate,
@@ -60,6 +79,25 @@ export default function PatientNew() {
             }
 
             const newPatient = await patientService.create(payload)
+
+            // Captura os campos do convênio diretamente do formulário HTML
+            const form = document.querySelector('form') as HTMLFormElement
+            const operatorName = (form?.elements.namedItem('operatorName') as HTMLInputElement)?.value
+            const cardNumber = (form?.elements.namedItem('cardNumber') as HTMLInputElement)?.value
+
+            // Salva o convênio apenas se o campo obrigatório (operadora) foi preenchido
+            if (operatorName && cardNumber) {
+                const insurancePayload: PatientInsuranceRequest = {
+                    operatorName,
+                    cardNumber,
+                    plan: (form?.elements.namedItem('plan') as HTMLInputElement)?.value || undefined,
+                    validity: (form?.elements.namedItem('validity') as HTMLInputElement)?.value || undefined,
+                    accommodation: (form?.elements.namedItem('accommodation') as HTMLInputElement)?.value || undefined,
+                    status: 'ACTIVE',
+                }
+                await patientInsuranceService.create(newPatient.id, insurancePayload)
+            }
+
             toast.success('Paciente cadastrado com sucesso!')
             navigate(`/patients/${newPatient.id}`)
         } catch (error: unknown) {
@@ -80,6 +118,7 @@ export default function PatientNew() {
             />
 
             <form onSubmit={handleSubmit(onSubmit)}>
+                {/* ── Dados Pessoais ── */}
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-primary text-lg">Dados Pessoais</CardTitle>
@@ -99,20 +138,12 @@ export default function PatientNew() {
 
                         <div className="space-y-2">
                             <Label htmlFor="cpf">CPF</Label>
-                            <Input
-                                id="cpf"
-                                placeholder="000.000.000-00"
-                                {...register('cpf')}
-                            />
+                            <Input id="cpf" placeholder="000.000.000-00" {...register('cpf')} />
                         </div>
 
                         <div className="space-y-2">
                             <Label htmlFor="cns">CNS (Cartão Nacional de Saúde)</Label>
-                            <Input
-                                id="cns"
-                                placeholder="000 0000 0000 0000"
-                                {...register('cns')}
-                            />
+                            <Input id="cns" placeholder="000 0000 0000 0000" {...register('cns')} />
                         </div>
 
                         <div className="space-y-2">
@@ -143,11 +174,7 @@ export default function PatientNew() {
 
                         <div className="space-y-2">
                             <Label htmlFor="phone">Telefone</Label>
-                            <Input
-                                id="phone"
-                                placeholder="(00) 00000-0000"
-                                {...register('phone')}
-                            />
+                            <Input id="phone" placeholder="(00) 00000-0000" {...register('phone')} />
                         </div>
 
                         <div className="space-y-2">
@@ -164,38 +191,26 @@ export default function PatientNew() {
 
                         <div className="space-y-2">
                             <Label htmlFor="prontuarioNumber">Nº do Prontuário Externo</Label>
-                            <Input
-                                id="prontuarioNumber"
-                                placeholder="Opcional"
-                                {...register('prontuarioNumber')}
-                            />
+                            <Input id="prontuarioNumber" placeholder="Opcional" {...register('prontuarioNumber')} />
                         </div>
                     </CardContent>
 
+                    {/* ── Endereço ── */}
                     <CardHeader className="pt-0">
                         <CardTitle className="text-primary text-lg">Endereço</CardTitle>
                     </CardHeader>
                     <CardContent className="grid md:grid-cols-2 gap-4">
                         <div className="space-y-2 md:col-span-2">
                             <Label htmlFor="addressStreet">Rua/Logradouro</Label>
-                            <Input
-                                id="addressStreet"
-                                {...register('addressStreet')}
-                            />
+                            <Input id="addressStreet" {...register('addressStreet')} />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="addressNumber">Número</Label>
-                            <Input
-                                id="addressNumber"
-                                {...register('addressNumber')}
-                            />
+                            <Input id="addressNumber" {...register('addressNumber')} />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="addressCity">Cidade</Label>
-                            <Input
-                                id="addressCity"
-                                {...register('addressCity')}
-                            />
+                            <Input id="addressCity" {...register('addressCity')} />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="addressState">Estado (UF)</Label>
@@ -204,6 +219,54 @@ export default function PatientNew() {
                                 placeholder="Ex: SP"
                                 maxLength={2}
                                 {...register('addressState')}
+                            />
+                        </div>
+                    </CardContent>
+
+                    {/* ── Convênio (opcional) ── */}
+                    <CardHeader className="pt-0">
+                        <CardTitle className="text-primary text-lg">Convênio</CardTitle>
+                        <CardDescription>Opcional — preencha se o paciente possui plano de saúde</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="operatorName">Operadora</Label>
+                            <Input
+                                id="operatorName"
+                                placeholder="Ex: Unimed, Bradesco Saúde"
+                                {...registerInsurance('operatorName')}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="cardNumber">Número da Carteirinha</Label>
+                            <Input
+                                id="cardNumber"
+                                placeholder="Ex: 0012345678901"
+                                {...registerInsurance('cardNumber')}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="plan">Plano</Label>
+                            <Input
+                                id="plan"
+                                placeholder="Ex: Enfermaria Plus"
+                                {...registerInsurance('plan')}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="accommodation">Acomodação</Label>
+                            <Input
+                                id="accommodation"
+                                placeholder="Ex: Enfermaria, Apartamento"
+                                {...registerInsurance('accommodation')}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="validity">Validade do Plano</Label>
+                            <Input
+                                id="validity"
+                                type="date"
+                                {...registerInsurance('validity')}
                             />
                         </div>
                     </CardContent>

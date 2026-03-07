@@ -22,9 +22,9 @@ export const doctorService = {
     },
 
     update: async (id: string, data: DoctorRequest): Promise<DoctorResponse> => {
-        console.log(data)
+        //console.log(data)
         const response = await api.put<DoctorResponse>(`/api/v1/doctors/${id}`, data)
-        console.log(response.data)
+        //console.log(response.data)
         return response.data
     },
 

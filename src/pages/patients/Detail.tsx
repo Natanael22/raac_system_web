@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { User, FileText, Calendar, Phone, MapPin, Activity, PowerOff } from 'lucide-react'
+import { User, FileText, Calendar, Phone, MapPin, Activity, PowerOff, Mail } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -99,7 +99,7 @@ export default function PatientDetail() {
                         <Button variant="outline" onClick={() => navigate(`/patients/${id}/records`)}>
                             <FileText className="w-4 h-4 mr-2" /> Prontuário (Evoluções)
                         </Button>
-                        <Button className="bg-secondary text-white hover:bg-secondary/90">
+                        <Button variant="default" onClick={() => navigate(`/appointments/new?patientId=${id}`)}>
                             <Calendar className="w-4 h-4 mr-2" /> Agendar Consulta
                         </Button>
                     </div>
@@ -141,13 +141,40 @@ export default function PatientDetail() {
                                     </div>
                                     <div>
                                         <p className="text-muted-foreground text-xs uppercase font-semibold">Email</p>
-                                        <p className="font-medium">{/* A API V1 PatientResponse não retorna email, mas podemos adaptar futuramente se necessário */}—</p>
+                                        <p className="font-medium flex items-center gap-1 mt-1">
+                                            <Mail className="h-3 w-3 text-muted-foreground" />
+                                            {patient.email || 'Não informado'}
+                                        </p>
                                     </div>
-                                    <div className="col-span-2 pt-2 border-t">
-                                        <p className="text-muted-foreground text-xs uppercase font-semibold">Endereço</p>
-                                        <p className="font-medium flex items-center gap-1 mt-1 text-muted-foreground italic">
-                                            <MapPin className="h-3 w-3" />
-                                            (Campos de endereço não retornados na ref atual da API)
+                                    <div className="col-span-2 pt-2 border-t" />
+                                </div>
+                            </CardContent>
+                            <CardHeader className="pb-4">
+                                <CardTitle className="text-primary flex items-center gap-2">
+                                    <MapPin className="h-5 w-5" />
+                                    Endereço
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-2 gap-y-4 gap-x-6 text-sm">
+                                    <div>
+                                        <p className="text-muted-foreground text-xs uppercase font-semibold">Rua</p>
+                                        <p className="font-medium">{patient.addressStreet || 'Não informado'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-muted-foreground text-xs uppercase font-semibold">Número</p>
+                                        <p className="font-medium">{patient.addressNumber || 'Não informado'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-muted-foreground text-xs uppercase font-semibold">Cidade</p>
+                                        <p className="font-medium flex items-center gap-1 mt-1">
+                                            {patient.addressCity || 'Não informado'}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-muted-foreground text-xs uppercase font-semibold">Estado</p>
+                                        <p className="font-medium flex items-center gap-1 mt-1">
+                                            {patient.addressState || 'Não informado'}
                                         </p>
                                     </div>
                                 </div>

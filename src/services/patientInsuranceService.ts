@@ -22,9 +22,16 @@ export interface PatientInsuranceResponse {
 
 export const patientInsuranceService = {
     list: async (patientId: string): Promise<PatientInsuranceResponse[]> => {
-        // endpoint listed in prompt: GET /api/v1/patients/{patientId}/insurances
-        const response = await api.get<PatientInsuranceResponse[]>(`/api/v1/patients/${patientId}/insurances`)
-        return response.data
+        // endpoint: GET /api/v1/patients/{patientId}/insurances
+        // A API retorna resposta paginada: { content: [...], totalElements, ... }
+        const response = await api.get(`/api/v1/patients/${patientId}/insurances`)
+        const data = response.data
+        if (!data) return []
+        // Suporte tanto a resposta paginada ({ content: [...] }) quanto a array direta
+        if (Array.isArray(data)) return data
+        if (data.content && Array.isArray(data.content)) return data.content
+
+        return [data]
     },
 
     create: async (patientId: string, data: PatientInsuranceRequest): Promise<PatientInsuranceResponse> => {

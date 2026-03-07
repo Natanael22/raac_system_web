@@ -33,11 +33,18 @@ export default function WaitingRoom() {
         }
     })
 
-    // Filter only patients that are present or in progress today
-    const waitingPatients = (appointmentsPage?.content ?? []).filter(a => {
-        const today = isToday(new Date(a.startDt))
-        return today && ['EM_ESPERA', 'EM_ATENDIMENTO'].includes(a.status)
-    }).sort((a, b) => new Date(a.startDt).getTime() - new Date(b.startDt).getTime())
+    // All appointments for today (all statuses except CANCELADO and AUSENTE)
+    const todayAppointments = (appointmentsPage?.content ?? []).filter(a => {
+        try {
+            return isToday(new Date(a.startDt))
+        } catch {
+            return false
+        }
+    }).filter(a => !['CANCELADO', 'AUSENTE', 'FINALIZADO'].includes(a.status))
+
+    // Subset for summary cards
+    const waitingPatients = todayAppointments.filter(a => a.status === 'EM_ESPERA')
+    const inProgressPatients = todayAppointments.filter(a => a.status === 'EM_ATENDIMENTO')
 
     const columns: ColumnDef<AppointmentResponse>[] = [
         {
@@ -78,28 +85,28 @@ export default function WaitingRoom() {
                 const apt = row.original
                 return (
                     <div className="flex justify-end gap-2">
-                        {apt.status === 'EM_ESPERA' && (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-secondary border-secondary/20 hover:bg-secondary/10"
-                                onClick={() => updateStatusMutation.mutate({ id: apt.id, status: 'EM_ATENDIMENTO' })}
-                                disabled={updateStatusMutation.isPending}
-                            >
-                                <Play className="w-4 h-4 mr-2" /> Chamar
-                            </Button>
-                        )}
-                        {apt.status === 'EM_ATENDIMENTO' && (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-success border-success/20 hover:bg-success/10"
-                                onClick={() => updateStatusMutation.mutate({ id: apt.id, status: 'FINALIZADO' })}
-                                disabled={updateStatusMutation.isPending}
-                            >
-                                <CheckCircle className="w-4 h-4 mr-2" /> Finalizar
-                            </Button>
-                        )}
+
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-secondary border-secondary/20 hover:bg-secondary/10"
+                            onClick={() => updateStatusMutation.mutate({ id: apt.id, status: 'EM_ATENDIMENTO' })}
+                            disabled={updateStatusMutation.isPending}
+                        >
+                            <Play className="w-4 h-4 mr-2" /> Atender
+                        </Button>
+
+
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-success border-success/20 hover:bg-success/10"
+                            onClick={() => updateStatusMutation.mutate({ id: apt.id, status: 'FINALIZADO' })}
+                            disabled={updateStatusMutation.isPending}
+                        >
+                            <CheckCircle className="w-4 h-4 mr-2" /> Finalizar
+                        </Button>
+
                         <Button
                             variant="ghost"
                             size="sm"
@@ -136,7 +143,7 @@ export default function WaitingRoom() {
                         <CardContent className="pt-6">
                             <div className="text-sm font-medium text-success/80 mb-1">Em Atendimento</div>
                             <div className="text-3xl font-bold text-success">
-                                {waitingPatients.filter(a => a.status === 'EM_ATENDIMENTO').length}
+                                {inProgressPatients.length}
                             </div>
                         </CardContent>
                     </Card>
@@ -144,7 +151,7 @@ export default function WaitingRoom() {
 
                 <DataTable
                     columns={columns}
-                    data={waitingPatients}
+                    data={todayAppointments}
                     loading={isLoading}
                     searchKey="patientName"
                     searchPlaceholder="Buscar por nome do paciente..."

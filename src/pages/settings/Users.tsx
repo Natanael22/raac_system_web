@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { Plus, Shield, Edit, Trash2 } from 'lucide-react'
+import { Plus, Shield, Edit, Send } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
 import { toast } from 'sonner'
 
@@ -72,11 +72,10 @@ export default function UserSettings() {
         setIsDialogOpen(false)
     }
 
-    const handleDelete = (id: string) => {
-        if (confirm('Deseja realmente remover este usuário?')) {
-            setUsers(users.filter(u => u.id !== id))
-            toast.success('Usuário removido (Mock)')
-        }
+
+
+    const handleResetSenha = (email: string) => {
+        toast.success(`Link de redefinição de senha enviado para ${email}`)
     }
 
     const columns: ColumnDef<UserListItem>[] = [
@@ -107,12 +106,14 @@ export default function UserSettings() {
             id: 'actions',
             cell: ({ row }) => (
                 <div className="flex justify-end gap-2">
+
                     <Button variant="ghost" size="sm" title="Editar Usuário" onClick={() => handleOpenDialog(row.original)}>
                         <Edit className="w-4 h-4 mr-2 text-primary" />
                         Editar
                     </Button>
-                    <Button variant="ghost" size="icon" className="text-danger hover:bg-danger/10" onClick={() => handleDelete(row.original.id)}>
-                        <Trash2 className="w-4 h-4" />
+                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary" title="Resetar Senha" onClick={() => handleResetSenha(row.original.email)}>
+                        <Send className="w-4 h-4 mr-2" />
+                        Reset Senha
                     </Button>
                 </div>
             )

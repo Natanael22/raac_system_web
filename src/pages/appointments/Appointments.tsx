@@ -96,7 +96,7 @@ export default function Appointments() {
                                 <SelectContent>
                                     <SelectItem value="all">Todos os Médicos</SelectItem>
                                     {doctors.map(doc => (
-                                        <SelectItem key={doc.id} value={doc.id}>Dr. {doc.name}</SelectItem>
+                                        <SelectItem key={doc.id} value={doc.id}> {doc.name}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -112,7 +112,7 @@ export default function Appointments() {
                             <FullCalendar
                                 ref={calendarRef}
                                 plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                                initialView="timeGridWeek"
+                                initialView="dayGridMonth"
                                 headerToolbar={{
                                     left: 'prev,next today',
                                     center: 'title',
