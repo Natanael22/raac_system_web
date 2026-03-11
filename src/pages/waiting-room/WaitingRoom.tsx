@@ -5,20 +5,25 @@ import { DataTable } from '@/components/shared/DataTable'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Play, CheckCircle, UserMinus } from 'lucide-react'
+import { Play, CheckCircle, UserMinus, Clock } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
 import type { AppointmentResponse } from '@/types/api'
 import { format, isToday } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { toast } from 'sonner'
+import { useState } from 'react'
+import { AttendanceWizard } from './components/AttendanceWizard'
 
 export default function WaitingRoom() {
     const queryClient = useQueryClient()
+    const [wizardAppointment, setWizardAppointment] = useState<AppointmentResponse | null>(null)
 
     const { data: appointmentsPage, isLoading } = useQuery({
         queryKey: ['waiting-room'],
-        queryFn: () => appointmentService.list({ page: 0, size: 100 }),
-        refetchInterval: 30000, // Refresh every 30 seconds
+        queryFn: () => appointmentService.list({ page: 0, size: 100, sort: ["startDt,asc"] }),
+        staleTime: 0,              // always consider cache stale
+        refetchOnWindowFocus: true, // refetch when tab re-gains focus
+        refetchInterval: 30000,    // also poll every 30 seconds
     })
 
     const updateStatusMutation = useMutation({
@@ -90,8 +95,7 @@ export default function WaitingRoom() {
                             variant="outline"
                             size="sm"
                             className="text-secondary border-secondary/20 hover:bg-secondary/10"
-                            onClick={() => updateStatusMutation.mutate({ id: apt.id, status: 'EM_ATENDIMENTO' })}
-                            disabled={updateStatusMutation.isPending}
+                            onClick={() => setWizardAppointment(apt)}
                         >
                             <Play className="w-4 h-4 mr-2" /> Atender
                         </Button>
@@ -105,6 +109,16 @@ export default function WaitingRoom() {
                             disabled={updateStatusMutation.isPending}
                         >
                             <CheckCircle className="w-4 h-4 mr-2" /> Finalizar
+                        </Button>
+
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-success border-success/20 hover:bg-success/10"
+                            onClick={() => updateStatusMutation.mutate({ id: apt.id, status: 'EM_ESPERA' })}
+                            disabled={updateStatusMutation.isPending}
+                        >
+                            <Clock className="w-4 h-4 mr-2" /> Aguardar
                         </Button>
 
                         <Button
@@ -157,6 +171,11 @@ export default function WaitingRoom() {
                     searchPlaceholder="Buscar por nome do paciente..."
                 />
             </div>
+
+            <AttendanceWizard
+                appointment={wizardAppointment}
+                onClose={() => setWizardAppointment(null)}
+            />
         </div>
     )
 }

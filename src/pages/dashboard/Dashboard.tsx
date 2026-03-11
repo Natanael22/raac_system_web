@@ -30,7 +30,7 @@ const statusLabelMap: Record<string, string> = {
 export default function Dashboard() {
     const { data: appointmentsPage, isLoading } = useQuery({
         queryKey: ['appointments-today'],
-        queryFn: () => appointmentService.list({ page: 0, size: 50 }),
+        queryFn: () => appointmentService.list({ page: 0, size: 50, sort: ["startDt,asc"] }),
         staleTime: 30_000, // 30 seconds — frequência alta por ser dado dinâmico
         refetchInterval: 60_000, // Auto-refetch a cada 1 minuto
     })

@@ -121,14 +121,19 @@ export default function Appointments() {
                                 locale={ptBrLocale}
                                 events={events}
                                 slotMinTime="07:00:00"
-                                slotMaxTime="20:00:00"
+                                slotMaxTime="23:59:00"
                                 allDaySlot={false}
                                 height="auto"
                                 eventClick={(info) => {
                                     setSelectedEvent(info.event)
                                 }}
                                 dateClick={(info) => {
-                                    toast(`Nova consulta em ${info.dateStr}`)
+                                    //toast(`Nova consulta em ${info.dateStr}`)
+                                    if (info.dateStr >= new Date().toISOString().split('T')[0]) {
+                                        navigate('/appointments/new')
+                                    } else {
+                                        toast.error('Não é possível agendar uma consulta para uma data passada')
+                                    }
                                 }}
                             />
                         )}

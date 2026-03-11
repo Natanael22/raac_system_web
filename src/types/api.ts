@@ -142,6 +142,7 @@ export interface AppointmentResponse {
     patientName: string
     doctorId: string
     doctorName: string
+    insuranceId?: string
     type: AppointmentType
     startDt: string
     endDt: string

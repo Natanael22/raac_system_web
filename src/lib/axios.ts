@@ -48,7 +48,16 @@ api.interceptors.response.use(
         }
 
         if (error.response?.status === 403) {
-            window.location.href = '/unauthorized'
+            const url: string = originalRequest?.url ?? ''
+            // Não redirecionar para /unauthorized em chamadas de API de escrita (POST/PUT/PATCH)
+            // — nesses casos o onError do React Query trata o erro com toast
+            const isWriteOperation = ['post', 'put', 'patch', 'delete'].includes(
+                (originalRequest?.method ?? '').toLowerCase()
+            )
+            if (!isWriteOperation) {
+                window.location.href = '/unauthorized'
+            }
+            void url // evitar warning de unused
             return Promise.reject(error)
         }
 

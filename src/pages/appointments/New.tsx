@@ -18,6 +18,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { User, Stethoscope, Clock } from 'lucide-react'
 import type { AppointmentRequest } from '@/types/api'
+import { PatientCombobox } from '@/components/shared/PatientCombobox'
 
 const formSchema = z.object({
     patientId: z.string().min(1, 'Paciente é obrigatório'),
@@ -81,6 +82,7 @@ export default function NewAppointment() {
         mutationFn: (data: AppointmentRequest) => appointmentService.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['appointments'] })
+            queryClient.invalidateQueries({ queryKey: ['waiting-room'] })
             toast.success('Agendamento criado com sucesso!')
             navigate('/appointments')
         },
@@ -117,19 +119,16 @@ export default function NewAppointment() {
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <Label>Paciente *</Label>
-                                <Select disabled={isLoadingPatients} value={watch('patientId')} onValueChange={(v) => {
-                                    setValue('patientId', v)
-                                    setValue('insuranceId', undefined) // Reset insurance when patient changes
-                                }}>
-                                    <SelectTrigger className={errors.patientId ? 'border-danger' : ''}>
-                                        <SelectValue placeholder="Selecione o paciente" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {patientsPage?.content.map(p => (
-                                            <SelectItem key={p.id} value={p.id}>{p.name} {p.cpf ? `(${p.cpf})` : ''}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <PatientCombobox
+                                    patients={patientsPage?.content ?? []}
+                                    value={watch('patientId')}
+                                    onChange={(v) => {
+                                        setValue('patientId', v)
+                                        setValue('insuranceId', undefined)
+                                    }}
+                                    disabled={isLoadingPatients}
+                                    hasError={!!errors.patientId}
+                                />
                                 {errors.patientId && <p className="text-xs text-danger">{errors.patientId.message}</p>}
                             </div>
 
